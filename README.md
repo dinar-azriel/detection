@@ -10,7 +10,7 @@
   <img src="https://img.shields.io/badge/FastAPI-Backend-success?style=flat&logo=fastapi" />
   <img src="https://img.shields.io/badge/PHP-Frontend-blueviolet?style=flat&logo=php" />
   <img src="https://img.shields.io/badge/PostgreSQL-Database-336791?style=flat&logo=postgresql" />
-  <img src="https://img.shields.io/badge/YOLOv8-Ultralytics-orange?style=flat&logo=ultralytics" />
+  <img src="https://img.shields.io/badge/YOLOv11-Ultralytics-orange?style=flat&logo=ultralytics" />
 </p>
 
 ---
@@ -18,7 +18,7 @@
 ## 📸 Features
 
 - ✅ **Multi-camera USB input** (from backend server)
-- ✅ **Real-time object detection (YOLOv8)**
+- ✅ **Real-time object detection (YOLOv11)**
 - ✅ **Start/Stop cameras from web dashboard**
 - ✅ **Capture image + count people + save to database**
 - ✅ **PHP dashboard with user login**
