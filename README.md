@@ -2,7 +2,7 @@
 
 <p align="center">
   🔍 Real-time detection of students in classrooms using multiple USB cameras<br>
-  Powered by YOLOv8 + FastAPI backend and PHP dashboard frontend.
+  Powered by YOLOv11 + FastAPI backend and PHP dashboard frontend.
 </p>
 
 <p align="center">
@@ -33,47 +33,10 @@
 | Layer        | Technology                     |
 |--------------|--------------------------------|
 | Backend API  | FastAPI + Python + OpenCV      |
-| AI Model     | YOLOv8 (`ultralytics`)         |
+| AI Model     | YOLOv11 (`ultralytics`)         |
 | Database     | PostgreSQL                     |
 | Frontend     | PHP (native), HTML, CSS, JS    |
 | Styling      | CSS custom (modern theme)      |
-
----
-
-## 🗂️ Folder Structure
-
-project/
-│
-├── backend/
-│ ├── main.py
-│ ├── auth.py
-│ ├── detection.py
-│ ├── camera_manager.py
-│ ├── database.py
-│ ├── models.py
-│ └── init.sql
-│
-├── frontend/
-│ ├── views/
-│ │ ├── login.php
-│ │ ├── register.php
-│ │ ├── dashboard.php
-│ │ └── cameras.php
-│ ├── api/
-│ │ ├── start_camera.php
-│ │ ├── stop_camera.php
-│ │ ├── capture.php
-│ │ ├── fetch_detections.php
-│ │ └── delete_detection.php
-│ ├── assets/
-│ │ ├── css/style.css
-│ │ └── js/main.js
-│ └── config.php
-│
-├── captures/
-├── requirements.txt
-└── README.md
-
 
 ---
 
@@ -84,11 +47,9 @@ project/
 ```bash
 pip install -r requirements.txt
 uvicorn main:app --reload
-
-```bash
 php -S localhost:8080 -t frontend/
 
 
-🗄️ Database Setup (PostgreSQL)
+## 🗄️ Database Setup (PostgreSQL)
 Buat database baru dengan nama "detection"
 
