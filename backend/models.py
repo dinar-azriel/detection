@@ -1,5 +1,7 @@
 from pydantic import BaseModel
 from datetime import datetime
+from typing import Optional
+from datetime import datetime
 
 class CameraRegister(BaseModel):
     camera_id: int
@@ -26,3 +28,11 @@ class UserLogin(BaseModel):
 
 class TokenResponse(BaseModel):
     token: str
+
+class DetectionOut(BaseModel):
+    id: Optional[int]
+    camera_id: int
+    room_name: str
+    timestamp: datetime
+    person_count: int
+    image_path: str
