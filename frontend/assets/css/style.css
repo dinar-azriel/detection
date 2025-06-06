@@ -1,0 +1,108 @@
+body {
+  font-family: 'Segoe UI', 'Open Sans', sans-serif;
+  background-color: #f9f9f9;
+  margin: 0;
+  padding: 20px;
+  color: #333;
+}
+
+h1, h2 {
+  color: #003366;
+}
+
+a {
+  color: #003366;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+a.btn-logout,
+a.btn-link {
+  display: inline-block;
+  background-color: #003366;
+  color: #fff;
+  padding: 8px 15px;
+  border-radius: 5px;
+  margin: 10px 5px 20px 0;
+}
+
+a.btn-logout:hover,
+a.btn-link:hover {
+  background-color: #002244;
+}
+
+.login-container,
+.dashboard {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+form input[type="text"],
+form input[type="password"],
+form input[type="number"],
+form select {
+  width: 100%;
+  padding: 8px;
+  margin: 5px 0 15px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+form button {
+  background-color: #FFD700;
+  border: none;
+  padding: 10px 20px;
+  color: #003366;
+  font-weight: bold;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+form button:hover {
+  background-color: #e6c200;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
+  background: #fff;
+}
+
+table th {
+  background-color: #003366;
+  color: #fff;
+  padding: 10px;
+}
+
+table td {
+  padding: 10px;
+  border: 1px solid #ddd;
+  text-align: center;
+}
+
+img {
+  border-radius: 4px;
+}
+
+.error {
+  background-color: #fdd;
+  padding: 10px;
+  border: 1px solid #f99;
+  color: #900;
+  border-radius: 5px;
+  margin-bottom: 15px;
+}
+
+.message {
+  background-color: #dfd;
+  padding: 10px;
+  border: 1px solid #9f9;
+  color: #060;
+  border-radius: 5px;
+  margin-bottom: 15px;
+}
