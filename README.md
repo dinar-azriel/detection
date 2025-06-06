@@ -48,8 +48,8 @@
 pip install -r requirements.txt
 uvicorn main:app --reload
 php -S localhost:8080 -t frontend/
+```
 
-
-## 🗄️ Database Setup (PostgreSQL)
+##🗄️ Database Setup (PostgreSQL)
 Buat database baru dengan nama "detection"
 
