@@ -5,7 +5,9 @@ from ultralytics import YOLO
 from database import cursor, conn
 from models import DetectionOut
 from camera_manager import get_last_frame
+import torch
 from dotenv import load_dotenv
+
 
 load_dotenv()
 
@@ -14,7 +16,8 @@ os.makedirs(CAPTURE_DIR, exist_ok=True)
 
 # Load model dari .env jika tersedia
 model_path = os.getenv("YOLO_MODEL_PATH", "best.pt")
-device = os.getenv("YOLO_DEVICE", "cuda")
+env_device = os.getenv("YOLO_DEVICE", "cuda")
+device = env_device if env_device == "cpu" or torch.cuda.is_available() else "cpu"
 
 model = YOLO(model_path)
 
@@ -25,7 +28,7 @@ def capture_detection(camera_id: int, room_name: str) -> DetectionOut:
 
     timestamp = datetime.now()
     filename = f"{room_name.replace(' ', '_')}_{timestamp.strftime('%Y%m%d_%H%M%S')}.jpg"
-    image_path = os.path.join(CAPTURE_DIR, filename)
+    image_path = f"{CAPTURE_DIR}/{filename}"
     cv2.imwrite(image_path, frame)
 
     person_count = count_people(frame)

@@ -3,20 +3,26 @@ require_once '../config.php';
 
 header('Content-Type: application/json');
 
-$camera_id = $_POST['camera_id'] ?? null;
-$token = $_POST['token'] ?? null;
+$username = $_POST['username'] ?? '';
+$password = $_POST['password'] ?? '';
 
-if (!$camera_id || !$token) {
+if (!$username || !$password) {
     http_response_code(400);
-    echo json_encode(["error" => "camera_id and token are required"]);
+    echo json_encode(['error' => 'Username and password are required']);
     exit;
 }
 
-$ch = curl_init("$API_BASE_URL/capture?camera_id=$camera_id");
+$data = json_encode([
+    'username' => $username,
+    'password' => $password
+]);
+
+$ch = curl_init("$API_BASE_URL/login");
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
 curl_setopt($ch, CURLOPT_POST, true);
 curl_setopt($ch, CURLOPT_HTTPHEADER, [
-    "Authorization: Bearer $token"
+    'Content-Type: application/json'
 ]);
 
 $response = curl_exec($ch);

@@ -10,6 +10,7 @@ class CameraRegister(BaseModel):
 class CameraInfo(BaseModel):
     camera_id: int
     room_name: str
+    status: str
 
 class DetectionOut(BaseModel):
     camera_id: int
