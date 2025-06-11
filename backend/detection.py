@@ -49,5 +49,5 @@ def capture_detection(camera_id: int, room_name: str) -> DetectionOut:
     )
 
 def count_people(frame) -> int:
-    results = model(frame, device=device)
+    results = model(frame, device=device, conf=0.4)
     return sum(1 for cls in results[0].boxes.cls if int(cls) == 0)

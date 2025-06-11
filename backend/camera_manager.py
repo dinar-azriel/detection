@@ -15,15 +15,35 @@ def run_camera(cam_id: int):
     cap = cv2.VideoCapture(cam_id)
     if not cap.isOpened():
         return
+
     while cam_id in ACTIVE_CAMERAS:
         success, frame = cap.read()
         if not success:
             continue
-        results = model(frame, device=device)
+
+        # Deteksi dengan YOLO
+        results = model(frame, device=device, conf=0.4)
         annotated = results[0].plot()
+
+        # Hitung jumlah class "0" (person)
+        person_count = sum(1 for cls in results[0].boxes.cls if int(cls) == 0)
+
+        # Tambahkan teks ke frame
+        cv2.putText(
+            annotated,
+            f"Jumlah Mahasiswa: {person_count}",
+            (10, 30),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            1,
+            (0, 255, 0),
+            2
+        )
+
         LAST_FRAMES[cam_id] = annotated
         time.sleep(0.3)
+
     cap.release()
+
 
 def start_camera(cam_id: int):
     if cam_id in ACTIVE_CAMERAS:

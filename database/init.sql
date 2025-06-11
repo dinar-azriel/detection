@@ -12,6 +12,9 @@ CREATE TABLE IF NOT EXISTS cameras (
     room_name TEXT NOT NULL
 );
 
+-- Menambahkan kolom 'label' ke tabel cameras
+ALTER TABLE cameras ADD COLUMN IF NOT EXISTS label TEXT;
+
 -- Membuat tabel hasil deteksi
 CREATE TABLE IF NOT EXISTS detections (
     id SERIAL PRIMARY KEY,

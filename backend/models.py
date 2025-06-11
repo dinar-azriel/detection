@@ -6,11 +6,13 @@ from datetime import datetime
 class CameraRegister(BaseModel):
     camera_id: int
     room_name: str
+    label: Optional[str] = None 
 
 class CameraInfo(BaseModel):
     camera_id: int
     room_name: str
     status: str
+    label: Optional[str] = None
 
 class DetectionOut(BaseModel):
     camera_id: int

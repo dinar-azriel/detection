@@ -47,22 +47,46 @@ def video_feed(camera_id: int = Query(...)):
             time.sleep(0.2)
     return StreamingResponse(generate(), media_type='multipart/x-mixed-replace; boundary=frame')
 
+@app.get("/available_cameras")
+def list_available_cameras():
+    import cv2
+    available = []
+    for i in range(5):  # Scan dari ID 0 sampai 4
+        cap = cv2.VideoCapture(i)
+        if cap.isOpened():
+            available.append({"camera_id": i, "label": f"Camera {i}"})
+            cap.release()
+    return available
+
+
 @app.post("/register_camera")
 def register_camera(data: CameraRegister):
     cursor.execute(
-        "INSERT INTO cameras (camera_id, room_name) VALUES (%s, %s) "
-        "ON CONFLICT (camera_id) DO UPDATE SET room_name = EXCLUDED.room_name",
-        (data.camera_id, data.room_name)
-    )
+    """
+    INSERT INTO cameras (camera_id, room_name, label)
+    VALUES (%s, %s, %s)
+    ON CONFLICT (camera_id)
+    DO UPDATE SET room_name = EXCLUDED.room_name, label = EXCLUDED.label
+    """,
+    (data.camera_id, data.room_name, data.label)
+)
+
     conn.commit()
     return {"message": "Camera registered", "data": data}
 
 @app.get("/camera_list", response_model=List[CameraInfo])
 def get_camera_list():
-    cursor.execute("SELECT camera_id, room_name, status FROM cameras")
+    cursor.execute("SELECT camera_id, room_name, status, label FROM cameras")
     rows = cursor.fetchall()
-    return [{"camera_id": r[0], "room_name": r[1], "status": r[2]} for r in rows]
-
+    return [
+        {
+            "camera_id": r[0],
+            "room_name": r[1],
+            "status": r[2],
+            "label": r[3]
+        }
+        for r in rows
+    ]
 
 @app.put("/camera_update")
 def camera_update(data: CameraRegister):
@@ -105,9 +129,15 @@ def detection_list():
 
 @app.delete("/detection/{id}")
 def delete_detection(id: int):
-    cursor.execute("SELECT id FROM detections WHERE id = %s", (id,))
-    if not cursor.fetchone():
-        raise HTTPException(status_code=404, detail="Detection not found")
+    cursor.execute("SELECT image_path FROM detections WHERE id = %s", (id,))
+    result = cursor.fetchone()
+
+    if result:
+        image_path = result[0]
+        if os.path.exists(image_path):
+            os.remove(image_path)
+
     cursor.execute("DELETE FROM detections WHERE id = %s", (id,))
     conn.commit()
-    return {"message": f"Detection ID {id} deleted"}
+    return {"message": "Deteksi dihapus"}
+
