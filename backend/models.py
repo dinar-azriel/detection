@@ -2,17 +2,19 @@ from pydantic import BaseModel
 from datetime import datetime
 from typing import Optional
 from datetime import datetime
+from typing import Union
 
 class CameraRegister(BaseModel):
-    camera_id: int
+    camera_id: Union[int, str]
     room_name: str
     label: Optional[str] = None 
 
 class CameraInfo(BaseModel):
-    camera_id: int
+    camera_id: Union[int, str]
     room_name: str
     status: str
-    label: Optional[str] = None
+    label: str
+
 
 class DetectionOut(BaseModel):
     camera_id: int

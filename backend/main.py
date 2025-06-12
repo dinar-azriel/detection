@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Query, HTTPException
+from fastapi import FastAPI, Query, HTTPException, Request
 from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -7,7 +7,7 @@ from detection import capture_detection, count_people
 from database import conn, cursor
 from camera_manager import start_camera, stop_camera, get_last_frame
 from auth import router as auth_router
-from typing import List
+from typing import List, Union
 import time
 import cv2
 import os
@@ -21,21 +21,26 @@ app.add_middleware(
     allow_methods=["*"], allow_headers=["*"]
 )
 
+# Buat direktori penyimpanan hasil deteksi
 os.makedirs("captures", exist_ok=True)
 app.mount("/captures", StaticFiles(directory="captures"), name="captures")
 
+# ================================
+# 📸 Endpoint Deteksi Kamera/Video
+# ================================
+
 @app.post("/start_camera")
-def api_start_camera(camera_id: int = Query(...)):
+def api_start_camera(camera_id: Union[int, str] = Query(...)):
     success = start_camera(camera_id)
     return {"message": f"Camera {camera_id} {'started' if success else 'already running'}"}
 
 @app.post("/stop_camera")
-def api_stop_camera(camera_id: int = Query(...)):
+def api_stop_camera(camera_id: Union[int, str] = Query(...)):
     success = stop_camera(camera_id)
     return {"message": f"Camera {camera_id} {'stopped' if success else 'not running'}"}
 
 @app.get("/video_feed")
-def video_feed(camera_id: int = Query(...)):
+def video_feed(camera_id: Union[int, str] = Query(...)):
     def generate():
         while True:
             frame = get_last_frame(camera_id)
@@ -47,30 +52,47 @@ def video_feed(camera_id: int = Query(...)):
             time.sleep(0.2)
     return StreamingResponse(generate(), media_type='multipart/x-mixed-replace; boundary=frame')
 
+# ======================
+# 📁 Daftar Kamera & Video
+# ======================
+
+@app.get("/videos")
+def list_videos():
+    video_dir = "backend/videos"
+    return [f for f in os.listdir(video_dir) if f.endswith((".mp4", ".avi", ".mov", ".mkv"))]
+
 @app.get("/available_cameras")
 def list_available_cameras():
-    import cv2
     available = []
-    for i in range(5):  # Scan dari ID 0 sampai 4
+    # Kamera fisik
+    for i in range(5):
         cap = cv2.VideoCapture(i)
         if cap.isOpened():
             available.append({"camera_id": i, "label": f"Camera {i}"})
             cap.release()
+    # Tambahkan video sebagai opsi kamera virtual
+    video_dir = "videos"
+    for file in os.listdir(video_dir):
+        if file.endswith((".mp4", ".avi", ".mov", ".mkv")):
+            available.append({"camera_id": file, "label": f"Video: {file}"})
     return available
 
+
+# ====================
+# 🎦 Manajemen Kamera
+# ====================
 
 @app.post("/register_camera")
 def register_camera(data: CameraRegister):
     cursor.execute(
-    """
-    INSERT INTO cameras (camera_id, room_name, label)
-    VALUES (%s, %s, %s)
-    ON CONFLICT (camera_id)
-    DO UPDATE SET room_name = EXCLUDED.room_name, label = EXCLUDED.label
-    """,
-    (data.camera_id, data.room_name, data.label)
-)
-
+        """
+        INSERT INTO cameras (camera_id, room_name, label)
+        VALUES (%s, %s, %s)
+        ON CONFLICT (camera_id)
+        DO UPDATE SET room_name = EXCLUDED.room_name, label = EXCLUDED.label
+        """,
+        (data.camera_id, data.room_name, data.label)
+    )
     conn.commit()
     return {"message": "Camera registered", "data": data}
 
@@ -103,8 +125,12 @@ def camera_delete(camera_id: int):
     conn.commit()
     return {"message": f"Camera {camera_id} deleted"}
 
+# ============================
+# 🧠 Deteksi & Capture Manual
+# ============================
+
 @app.post("/capture", response_model=DetectionOut)
-def capture(camera_id: int = Query(...)):
+def capture(camera_id: Union[int, str] = Query(...)):
     cursor.execute("SELECT room_name FROM cameras WHERE camera_id = %s", (camera_id,))
     row = cursor.fetchone()
     if not row:
@@ -140,4 +166,3 @@ def delete_detection(id: int):
     cursor.execute("DELETE FROM detections WHERE id = %s", (id,))
     conn.commit()
     return {"message": "Deteksi dihapus"}
-

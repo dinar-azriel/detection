@@ -1,22 +1,31 @@
 <?php
-require_once '../config.php';
+// stop_camera.php
 
-header('Content-Type: application/json');
+$data = json_decode(file_get_contents('php://input'), true);
+$camera_id = $data['camera_id'] ?? '';
 
-$camera_id = $_POST['camera_id'] ?? null;
-
-if ($camera_id === null) {
-    http_response_code(400);
-    echo json_encode(["error" => "camera_id is required"]);
-    exit;
+if ($camera_id === '') {
+  http_response_code(400);
+  echo json_encode(['error' => 'Camera ID kosong']);
+  exit;
 }
 
-$ch = curl_init("$API_BASE_URL/stop_camera?camera_id=$camera_id");
-curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-curl_setopt($ch, CURLOPT_POST, true);
-$response = curl_exec($ch);
-$http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-curl_close($ch);
+$backend_url = 'http://localhost:8000/stop_camera?camera_id=' . urlencode($camera_id);
 
-http_response_code($http_code);
-echo $response;
+$options = [
+  'http' => [
+    'method'  => 'POST',
+  ]
+];
+
+$context  = stream_context_create($options);
+$result = file_get_contents($backend_url, false, $context);
+
+if ($result === FALSE) {
+  http_response_code(500);
+  echo json_encode(['error' => 'Gagal menghentikan kamera/video']);
+  exit;
+}
+
+echo $result;
+?>

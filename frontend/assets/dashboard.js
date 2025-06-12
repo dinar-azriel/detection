@@ -30,11 +30,7 @@ function showTab(id, element) {
 document.getElementById("registerForm")?.addEventListener("submit", async function(e) {
   e.preventDefault();
   const form = new FormData(this);
-
-  if (!form.get("camera_id")) {
-    alert("Pilih ID kamera terlebih dahulu.");
-    return;
-  }
+  if (!form.get("camera_id")) return alert("Pilih ID kamera terlebih dahulu.");
 
   const res = await fetch(`${API}/register_camera`, {
     method: "POST",
@@ -58,17 +54,12 @@ async function refreshCameraDevices() {
     const res = await fetch(`${API}/available_cameras`);
     const cameras = await res.json();
 
-    if (cameras.length === 0) {
-      select.innerHTML = `<option value="">Tidak ada kamera terdeteksi</option>`;
-      return;
-    }
-
     select.innerHTML = `<option value="">Pilih Kamera</option>`;
     cameras.forEach(cam => {
       select.innerHTML += `<option value="${cam.camera_id}">${cam.label || `Camera ${cam.camera_id}`}</option>`;
     });
   } catch (err) {
-    console.error("Gagal memuat kamera dari backend:", err);
+    console.error("Gagal memuat kamera:", err);
     select.innerHTML = `<option value="">Gagal memuat kamera</option>`;
   }
 }
@@ -82,30 +73,28 @@ async function loadCameraList() {
   const filter = document.getElementById("roomFilter");
 
   const selectedValue = select?.value || "";
-
   if (list) list.innerHTML = "";
-  if (select) select.innerHTML = "";
+  if (select) select.innerHTML = `<option value="">Pilih Kamera</option>`;
   if (filter) filter.innerHTML = `<option value="">Semua</option>`;
 
   data.forEach(cam => {
     if (list) {
       list.innerHTML += `
-  <tr>
-    <td class="px-4 py-2">Cam ${cam.camera_id}</td>
-    <td class="px-4 py-2">${cam.room_name}</td>
-    <td class="px-4 py-2">${cam.label || "-"}</td>
-    <td class="px-4 py-2 flex gap-2">
-      <button onclick="editCamera(${cam.camera_id}, '${cam.room_name}')"
-        class="bg-blue-500 hover:bg-blue-600 text-white text-sm px-3 py-1 rounded-lg transition">
-        Edit
-      </button>
-      <button onclick="deleteCamera(${cam.camera_id})"
-        class="bg-red-500 hover:bg-red-600 text-white text-sm px-3 py-1 rounded-lg transition">
-        Hapus
-      </button>
-    </td>
-  </tr>`;
-
+      <tr>
+        <td class="px-4 py-2">Cam ${cam.camera_id}</td>
+        <td class="px-4 py-2">${cam.room_name}</td>
+        <td class="px-4 py-2">${cam.label || "-"}</td>
+        <td class="px-4 py-2 flex gap-2">
+          <button onclick="editCamera('${cam.camera_id}', '${cam.room_name}')"
+            class="bg-blue-500 hover:bg-blue-600 text-white text-sm px-3 py-1 rounded-lg transition">
+            Edit
+          </button>
+          <button onclick="deleteCamera('${cam.camera_id}')"
+            class="bg-red-500 hover:bg-red-600 text-white text-sm px-3 py-1 rounded-lg transition">
+            Hapus
+          </button>
+        </td>
+      </tr>`;
     }
     if (select) select.innerHTML += `<option value="${cam.camera_id}">${cam.room_name}</option>`;
     if (filter) filter.innerHTML += `<option value="${cam.room_name}">${cam.room_name}</option>`;
@@ -132,17 +121,18 @@ function editCamera(id, oldName) {
 
 function deleteCamera(id) {
   if (confirm("Hapus kamera ini?")) {
-    fetch(`${API}/camera_delete/${id}`, { method: "DELETE" }).then(res => {
-      if (res.ok) loadCameraList();
-    });
+    fetch(`${API}/camera_delete/${encodeURIComponent(id)}`, { method: "DELETE" })
+      .then(res => {
+        if (res.ok) loadCameraList();
+      });
   }
 }
 
-// === START DARI DROPDOWN ===
+// === START dari dropdown utama
 document.getElementById("startBtn").onclick = async function () {
   const select = document.getElementById("selectCamera");
-  const cameraId = parseInt(select.value);
-  if (isNaN(cameraId)) return;
+  const cameraId = select.value;
+  if (!cameraId) return;
 
   if (document.getElementById(`cam-wrapper-${cameraId}`)) {
     alert("Kamera ini sudah aktif.");
@@ -151,13 +141,13 @@ document.getElementById("startBtn").onclick = async function () {
 
   await startCamera(cameraId);
   const cameras = await fetch(`${API}/camera_list`).then(res => res.json());
-  const cam = cameras.find(c => c.camera_id === cameraId);
+  const cam = cameras.find(c => c.camera_id == cameraId);
   if (cam) addFeedElement(cam);
 
   document.getElementById("feeds").classList.remove("hidden");
 };
 
-// === START SEMUA KAMERA SEKALIGUS ===
+// === Start semua kamera sekaligus
 async function showLiveFeeds() {
   const res = await fetch(`${API}/camera_list`);
   const cameras = await res.json();
@@ -187,12 +177,12 @@ function addFeedElement(cam) {
 
   wrapper.innerHTML = `
     <h3 class="font-semibold text-lg mb-2">Cam ${cam.camera_id} - ${cam.room_name}</h3>
-    <img id="cam-feed-${cam.camera_id}" src="${API}/video_feed?camera_id=${cam.camera_id}"
+    <img id="cam-feed-${cam.camera_id}" src="${API}/video_feed?camera_id=${encodeURIComponent(cam.camera_id)}"
       class="w-full max-h-[400px] bg-gray-100 object-contain mb-2 rounded" />
     <div class="flex justify-center gap-2 mt-2">
-      <button onclick="stopCamera(${cam.camera_id})"
+      <button onclick="stopCamera('${cam.camera_id}')"
         class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm">Stop</button>
-      <button onclick="capture(${cam.camera_id})"
+      <button onclick="capture('${cam.camera_id}')"
         class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded text-sm">Simpan</button>
     </div>
   `;
@@ -201,11 +191,11 @@ function addFeedElement(cam) {
 }
 
 function startCamera(id) {
-  return fetch(`${API}/start_camera?camera_id=${id}`, { method: "POST" });
+  return fetch(`${API}/start_camera?camera_id=${encodeURIComponent(id)}`, { method: "POST" });
 }
 
 function stopCamera(id) {
-  fetch(`${API}/stop_camera?camera_id=${id}`, { method: "POST" })
+  fetch(`${API}/stop_camera?camera_id=${encodeURIComponent(id)}`, { method: "POST" })
     .then(() => {
       const el = document.getElementById(`cam-wrapper-${id}`);
       if (el) el.remove();
@@ -217,7 +207,7 @@ function stopCamera(id) {
 }
 
 function capture(id) {
-  fetch(`${API}/capture?camera_id=${id}`, { method: "POST" })
+  fetch(`${API}/capture?camera_id=${encodeURIComponent(id)}`, { method: "POST" })
     .then(res => res.json())
     .then(data => {
       alert(`Jumlah orang terdeteksi: ${data.person_count}`);
@@ -241,21 +231,17 @@ async function loadDetectionTable() {
   data.forEach(row => {
     if (selectedRoom && row.room_name !== selectedRoom) return;
 
-function formatwaktu(timestamp) {
-  const date = new Date(timestamp);
-  return date
-    .toLocaleString('id-ID', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false
-    })
-    .replace(' pukul ', ' ') 
-    .replace(':', '.');      
-}
-
+    function formatwaktu(timestamp) {
+      const date = new Date(timestamp);
+      return date.toLocaleString('id-ID', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+      }).replace(' pukul ', ' ').replace(':', '.');
+    }
 
     tbody.innerHTML += `
       <tr>
@@ -264,11 +250,10 @@ function formatwaktu(timestamp) {
         <td class="px-4 py-2">${row.person_count}</td>
         <td class="px-4 py-2">${formatwaktu(row.timestamp)}</td>
         <td class="px-4 py-2">
-  <a href="${API}/${row.image_path}" target="_blank">
-    <img src="${API}/${row.image_path}" alt="Deteksi" class="w-20 h-14 object-cover mx-auto rounded hover:opacity-80 transition" />
-  </a>
-</td>
-
+          <a href="${API}/${row.image_path}" target="_blank">
+            <img src="${API}/${row.image_path}" class="w-20 h-14 object-cover mx-auto rounded hover:opacity-80 transition">
+          </a>
+        </td>
         <td class="px-4 py-2">
           <button onclick="deleteDetection(${row.id})"
             class="bg-red-500 hover:bg-red-600 text-white text-xs px-3 py-1 rounded">
@@ -282,9 +267,8 @@ function formatwaktu(timestamp) {
 
 function deleteDetection(id) {
   if (confirm("Yakin ingin menghapus deteksi ini?")) {
-    fetch(`${API}/detection/${id}`, { method: "DELETE" })
-      .then(res => {
-        if (res.ok) loadDetectionTable();
-      });
+    fetch(`${API}/detection/${id}`, { method: "DELETE" }).then(res => {
+      if (res.ok) loadDetectionTable();
+    });
   }
 }
